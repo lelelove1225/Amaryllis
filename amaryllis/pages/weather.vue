@@ -1,26 +1,27 @@
 <template>
   <section>
     <div class="weather">
-      <img :src="`${weatherValue.icon}`" />
-      <div>{{ weatherValue.weather }}</div>
-      <br />
-      <div>{{ Math.round(weatherValue.temp) }}℃</div>
-    </div>
-    <div class="weather">
-      <img :src="`${weatherValue.icon}`" />
-      <div>{{ weatherValue.weather }}</div>
-      <br />
-      <div>{{ Math.round(weatherValue.temp) }}℃</div>
+      <ul v-for="weather of weatherValueList" :key="weather.date">
+        <li>
+          <div>{{ weather.date }}</div>
+        </li>
+        <li><img :src="`${weather.icon}`" /></li>
+        <li>
+          <div>{{ weather.weather }}</div>
+        </li>
+        <li>
+          <div>{{ Math.round(weather.temp) }}℃</div>
+        </li>
+      </ul>
     </div>
   </section>
 </template>
 
 <style scoped>
-.weather {
-  display: inline-block;
-}
-.weather div {
-  float: left;
+.weather ul li {
+  list-style: none;
+  display: table-cell;
+  vertical-align: middle;
 }
 </style>
 
@@ -40,6 +41,7 @@ export default {
   },
   mounted() {
     this.getWeather();
+    // this.splitString();
   },
 
   methods: {
@@ -50,6 +52,7 @@ export default {
         city +
         ",jp&units=metric&APPID=" +
         process.env.WEATHER_API_KEY;
+      const valueList = [];
       // eslint-disable-next-line no-console
       console.log(process.env.WEATHER_API_KEY);
       axios.get(url).then(response => {
@@ -68,12 +71,63 @@ export default {
           }.png`;
           weatherValue.weather = target.weather[0].description;
           // eslint-disable-next-line no-console
-          console.log(weatherValue);
-          this.weatherValueList.push(weatherValue);
+          console.log(this.weatherValueList);
+          valueList[i] = weatherValue;
         }
+
         // eslint-disable-next-line no-console
-        console.log(this.weatherValueList);
+        console.log(valueList);
+        this.weatherValueList = valueList;
+        this.splitString(valueList);
       });
+    },
+    splitString(valueList) {
+      // eslint-disable-next-line no-console
+      console.log("aaa");
+      for (let index = 0; index < this.weatherValueList.length; index++) {
+        const { date } = this.weatherValueList[index];
+        // eslint-disable-next-line no-console
+        const splittedDate = String(date).split(" ");
+
+        const week = splittedDate[0];
+        const month = splittedDate[1];
+        const day = splittedDate[2];
+        this.getCurrentTime(day);
+        this.weatherValueList[index].week = week;
+        this.weatherValueList[index].month = month;
+        this.weatherValueList[index].day = day;
+      }
+    },
+    getCurrentTime() {
+      const hiduke = new Date();
+
+      // 年・月・日・曜日を取得する
+      const year = hiduke.getFullYear();
+      const month = hiduke.getMonth() + 1;
+      const week = hiduke.getDay();
+      const day = hiduke.getDate();
+      const hours = hiduke.getHours();
+      const minute = hiduke.getMinutes();
+
+      const yobi = ["日", "月", "火", "水", "木", "金", "土"];
+
+      const display =
+        "西暦" +
+        year +
+        "年" +
+        month +
+        "月" +
+        day +
+        "日 " +
+        yobi[week] +
+        "曜日" +
+        hours +
+        "時" +
+        minute +
+        "分";
+      // eslint-disable-next-line no-console
+      console.log(display);
+      return display;
     }
   }
 };
